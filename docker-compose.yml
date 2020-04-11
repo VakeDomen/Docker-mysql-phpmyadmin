@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  db:
+    image: mysql:latest
+    container_name: mysql_mak
+    restart: unless-stopped
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=database
+    networks:
+      - proxy
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.mysql_mak.rule=Host(`${MYSQL_DOMAIN}`)
+      - traefik.http.routers.mysql_mak.entrypoints=websecure
+      - traefik.http.routers.mysql_mak.tls=true
+      - traefik.http.routers.mysql_mak.tls.certresolver=le
+      
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_mak
+    restart: unless-stopped
+    depends_on:
+      - db
+    networks:
+      - proxy
+    environment:
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${MYSQL_PASSWORD}
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.phpmyadmin_mak.rule=Host(`${PHPMYADMIN_DOMAIN}`)
+      - traefik.http.routers.phpmyadmin_mak.entrypoints=websecure
+      - traefik.http.routers.phpmyadmin_mak.tls=true
+      - traefik.http.routers.phpmyadmin_mak.tls.certresolver=le
+
+networks:
+  proxy:
+    external: true
+    
